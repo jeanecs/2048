@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Dimensions, SafeAreaView, Button } from 'react-native';
-import { moveRowLeft, addRandomTile, moveGrid } from './utils/gameLogic';
+import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { addRandomTile, moveGrid } from './utils/gameLogic';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CELL_SIZE = (SCREEN_WIDTH - 40) / 4; // 40 is total padding
@@ -13,7 +14,7 @@ export default function App() {
     return addRandomTile(initialGrid);
   });
 
-  const handleMove = (direction) => {
+    const handleMove = (direction) => {
     const newGrid = moveGrid(grid, direction);
 
     // Simple way to check if two arrays are identical
@@ -24,21 +25,50 @@ export default function App() {
     }
   };
 
+  const swipeGesture = Gesture.Pan()
+  .onEnd((event) => {
+    const { translationX, translationY } = event;
+
+    // Determine if the swipe was horizontal or vertical
+    if (Math.abs(translationX) > Math.abs(translationY)) {
+      // Horizontal Swipe
+      if (translationX > 50) {
+        handleMove('RIGHT');
+      } else if (translationX < -50) {
+        handleMove('LEFT');
+      }
+    } else {
+      // Vertical Swipe
+      if (translationY > 50) {
+        handleMove('DOWN');
+      } else if (translationY < -50) {
+        handleMove('UP');
+      }
+    }
+  })
+  .runOnJS(true);
+
+
+
+
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>2048 Clone</Text>
       
-      <View style={styles.board}>
-        {grid.map((row, r) => (
-          <View key={r} style={styles.row}>
-            {row.map((cell, c) => (
-              <View key={c} style={[styles.cell, { backgroundColor: getCellColor(cell) }]}>
-                <Text style={styles.cellText}>{cell !== 0 ? cell : ''}</Text>
-              </View>
-            ))}
-          </View>
-        ))}
-      </View>
+      <GestureDetector gesture={swipeGesture}>
+        <View style={styles.board}>
+          {grid.map((row, r) => (
+            <View key={r} style={styles.row}>
+              {row.map((cell, c) => (
+                <View key={c} style={[styles.cell, { backgroundColor: getCellColor(cell) }]}>
+                  <Text style={styles.cellText}>{cell !== 0 ? cell : ''}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      </GestureDetector>
 
       <View style={styles.controls}>
         <Button title="↑" onPress={() => handleMove('UP')} />
@@ -49,6 +79,7 @@ export default function App() {
         <Button title="↓" onPress={() => handleMove('DOWN')} />
       </View>
     </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 

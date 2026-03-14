@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Dimensions, SafeAreaView, Button } from 'react-native';
-import { moveRowLeft, addRandomTile } from './utils/gameLogic';
+import { moveRowLeft, addRandomTile, moveGrid } from './utils/gameLogic';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CELL_SIZE = (SCREEN_WIDTH - 40) / 4; // 40 is total padding
@@ -13,12 +13,13 @@ export default function App() {
     return addRandomTile(initialGrid);
   });
 
-  const handleMoveLeft = () => {
-    // 1. Calculate new grid by moving every row left
-    const newGrid = grid.map(row => moveRowLeft(row));
+  const handleMove = (direction) => {
+    const newGrid = moveGrid(grid, direction);
 
-    // 2. Only add a tile if the board actually changed
-    if (JSON.stringify(newGrid) !== JSON.stringify(grid)) {
+    // Simple way to check if two arrays are identical
+    const isChanged = JSON.stringify(newGrid) !== JSON.stringify(grid);
+
+    if (isChanged) {
       setGrid(addRandomTile(newGrid));
     }
   };
@@ -40,7 +41,12 @@ export default function App() {
       </View>
 
       <View style={styles.controls}>
-        <Button title="Move Left" onPress={handleMoveLeft} color="#8f7a66" />
+        <Button title="↑" onPress={() => handleMove('UP')} />
+        <View style={{ flexDirection: 'row' }}>
+          <Button title="←" onPress={() => handleMove('LEFT')} />
+          <Button title="→" onPress={() => handleMove('RIGHT')} />
+        </View>
+        <Button title="↓" onPress={() => handleMove('DOWN')} />
       </View>
     </SafeAreaView>
   );
